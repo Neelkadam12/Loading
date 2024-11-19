@@ -1,0 +1,132 @@
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.Name = "LoadingScreen"
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.5, 0, 0.3, 0)
+mainFrame.Position = UDim2.new(0.25, 0, 0.35, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.ClipsDescendants = true
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 15)
+uiCorner.Parent = mainFrame
+
+local loadingText = Instance.new("TextLabel")
+loadingText.Size = UDim2.new(1, 0, 0.3, 0)
+loadingText.Position = UDim2.new(0, 0, 0.1, 0)
+loadingText.BackgroundTransparency = 1
+loadingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadingText.Font = Enum.Font.GothamBold
+loadingText.TextSize = 24
+loadingText.Text = "Loading..."
+loadingText.Parent = mainFrame
+
+local popUpText = Instance.new("TextLabel")
+popUpText.Size = UDim2.new(1, 0, 0.3, 0)
+popUpText.Position = UDim2.new(0, 0, 0.5, 0)
+popUpText.BackgroundTransparency = 1
+popUpText.TextColor3 = Color3.fromRGB(200, 200, 200)
+popUpText.Font = Enum.Font.Gotham
+popUpText.TextSize = 20
+popUpText.Text = ""
+popUpText.Parent = mainFrame
+
+local loadingBarFrame = Instance.new("Frame")
+loadingBarFrame.Size = UDim2.new(0.9, 0, 0.1, 0)
+loadingBarFrame.Position = UDim2.new(0.05, 0, 0.8, 0)
+loadingBarFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+loadingBarFrame.BorderSizePixel = 0
+loadingBarFrame.Parent = mainFrame
+
+local uiCornerBar = Instance.new("UICorner")
+uiCornerBar.CornerRadius = UDim.new(0, 10)
+uiCornerBar.Parent = loadingBarFrame
+
+local loadingBar = Instance.new("Frame")
+loadingBar.Size = UDim2.new(0, 0, 1, 0)
+loadingBar.Position = UDim2.new(0, 0, 0, 0)
+loadingBar.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+loadingBar.BorderSizePixel = 0
+loadingBar.Parent = loadingBarFrame
+
+local uiCornerBarFill = Instance.new("UICorner")
+uiCornerBarFill.CornerRadius = UDim.new(0, 10)
+uiCornerBarFill.Parent = loadingBar
+
+local dragging = false
+local dragInput, dragStart, startPos
+
+local function updatePosition(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+local function onInputBegan(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end
+
+local function onInputChanged(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        updatePosition(input)
+    end
+end
+
+local function onInputEnded(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end
+
+mainFrame.InputBegan:Connect(onInputBegan)
+mainFrame.InputChanged:Connect(onInputChanged)
+mainFrame.InputEnded:Connect(onInputEnded)
+
+local loadingFinished = false
+local function animateLoading()
+    local messages = {"Welcome", "Loading up the script!", "Thanks for choosing ZyroScripts"}
+    local firstMessage = true
+    while not loadingFinished do
+        for i = 1, #messages do
+            if firstMessage then
+                popUpText.Text = "Welcome"
+                firstMessage = false
+            else
+                popUpText.Text = messages[i]
+            end
+
+            for j = 0, 1, 0.02 do
+                popUpText.TextTransparency = j
+                wait(0.02)
+            end
+            wait(0.7)
+            for j = 1, 0, -0.02 do
+                popUpText.TextTransparency = j
+                wait(0.02)
+            end
+        end
+    end
+end
+
+local function animateBar()
+    for i = 1, 100 do
+        loadingBar:TweenSize(UDim2.new(i / 100, 0, 1, 0), "Out", "Sine", 0.05, true)
+        wait(0.1)
+    end
+    loadingFinished = true
+    popUpText.Text = "Loading Complete!"
+    popUpText.TextTransparency = 0
+    wait(0.5)
+    mainFrame:Destroy()
+end
+
+spawn(animateLoading)
+animateBar()
